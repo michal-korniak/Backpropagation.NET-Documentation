@@ -1,12 +1,4 @@
-\documentclass[12pt]{article}
-\title{Dokumentacja implementacji algorytmu wstecznej propagacji na przykładzie funkcji NXoR}
-\author{Michał Korniak}
-\date{}
-\usepackage{graphicx}
-\usepackage{graphics}
-\usepackage[polish]{babel}
-\usepackage[T1]{fontenc}
-\newcommand{\source}[1]{{\centerline{\tiny Źródło: #1}}}
+\input{start-up} 
 
 
 \begin{document}
@@ -67,6 +59,31 @@ Po podstawieniu otrzymanej wcześniej wartości do funkcji dostaniemy wartość 
 W ten sposób będziemy liczyć wartość kolejnych neuronów aż otrzymamy wynik.
 
 \subsection{Implementacja wielowarstwowej sieci neuronowej}
+
+Teraz przedstawię implementację mechanizmu zaprezentowanego w poprzednim podrozdziale.
+Jej podstawą jest klasa odwzorowującej sieć neuronową, w naszym przypadku
+taką funkcję pełni klasa NeuralNetwork, która to implementuje poniższy interfejs.
+
+\begin{lstlisting} 
+  public interface INeuralNetwork
+  {
+      IEnumerable<IInputNeuron> InputLayer { get; }
+      IEnumerable<IHiddenNeuron> HiddenLayer { get; }
+      IEnumerable<IOutputNeuron> OutputLayer { get; }
+      IErrorFunction ErrorFunction { get; }
+      void FillInputNeurons(IEnumerable<double> input);
+      IEnumerable<double> CalculateOutput();
+  }
+\end{lstlisting}
+
+W tym momencie skupmy się na linijkach 3, 4 i 5, które to wskazują na to, że sieć neuronowa zawiera warstwy wejściową, ukrytą i wyjściową.
+Jak widzimy każda warstwa posiada inny typ neuronu, wynika to z tego, że w zależności od warstwy neurony się różnią. Przykładowo:
+\begin{itemize}
+  \item Neuron warstwy wejściowej nie ma możliwości dodawanie połączeń wejściowych
+  \item Neuron warstwy wyjściowej nie ma możliwości dodawanie połączeń wyjściowych
+  \item Neuron warstwy ukrytej ma możliwość dodawanie obu typów połączeń
+\end{itemize}
+
 
 
 
