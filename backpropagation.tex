@@ -62,9 +62,9 @@ W ten sposób będziemy liczyć wartość kolejnych neuronów aż otrzymamy wyni
 
 Teraz przedstawię implementację mechanizmu zaprezentowanego w poprzednim podrozdziale.
 Jej podstawą jest klasa odwzorowującej sieć neuronową, w naszym przypadku
-taką funkcję pełni klasa NeuralNetwork, która to implementuje poniższy interfejs.
+taką funkcję pełni klasa NeuralNetwork, która to implementuje interfejs pokazany na listingu \ref{lst:INeuralNetwork}.
 
-\begin{lstlisting} 
+\begin{lstlisting}[caption={Interfejs INeuralNetwork}, label={lst:INeuralNetwork}]
   public interface INeuralNetwork
   {
       IEnumerable<IInputNeuron> InputLayer { get; }
@@ -77,12 +77,86 @@ taką funkcję pełni klasa NeuralNetwork, która to implementuje poniższy inte
 \end{lstlisting}
 
 W tym momencie skupmy się na linijkach 3, 4 i 5, które to wskazują na to, że sieć neuronowa zawiera warstwy wejściową, ukrytą i wyjściową.
-Jak widzimy każda warstwa posiada inny typ neuronu, wynika to z tego, że w zależności od warstwy neurony się różnią. Przykładowo:
+Jak widzimy każda warstwa posiada inny typ neuronu, co wynika to z tego, że w zależności od warstwy neurony się różnią. Przykładowo:
 \begin{itemize}
-  \item Neuron warstwy wejściowej nie ma możliwości dodawanie połączeń wejściowych
-  \item Neuron warstwy wyjściowej nie ma możliwości dodawanie połączeń wyjściowych
-  \item Neuron warstwy ukrytej ma możliwość dodawanie obu typów połączeń
+  \item Neuron warstwy wejściowej nie ma możliwości dodawanie połączeń wejściowych.
+  \item Neuron warstwy wyjściowej nie ma możliwości dodawanie połączeń wyjściowych.
+  \item Neuron warstwy ukrytej ma możliwość dodawanie obu typów połączeń.
 \end{itemize}
+
+Obiekt klasy NeuralNetwork jest tworzony z wykorzystaniem wzorca "Builder".
+Dzieje się to w sposób pokazany na listingu \ref{lst:NeuralNetworkBuilder}.
+
+\begin{lstlisting} [caption={Budowanie obiektu NeuralNetwork},label={lst:NeuralNetworkBuilder}]
+  var neuralNetworkBuilder = new NeuralNetworkBuilder();
+  var network = neuralNetworkBuilder
+      .SetNumberOfInputNeurons(2)
+      .SetNumberOfOutputNeurons(1)
+      .SetActivationFunction(new SigmoidActivationFunction())
+      .SetErrorFunction(new MeanSquaredErrorFunction(1))
+      .SetNumberOfHiddenNeurons(3)  //opcjonalne
+      .AddBiasConnections()         //opcjonalne
+      .Build();
+\end{lstlisting}
+
+Klasa NeuralNetworkBuilder umożliwia stworzenie sieci neuronowej:
+\begin{itemize}
+  \item Zawierającą wybraną ilość neuronów warstwy wejściowej.
+  \item Zawierającą wybraną ilość neuronów warstwy wyjściowej
+  \item Działającą na określonej funkcji aktywacji
+  \item Wyliczającej błąd na podstawie wybranej funkcji
+  \item Umożliwiającej opcjonalne dodanie warstwy ukrytej
+  \item Umożliwiającej opcjonalne dodanie połączeń do biasów
+\end{itemize}
+
+Zadaniem Buildera jest stworzenie obiektu klasy NeuralNetwork, który spełni podane wymagania. 
+W zależności od tego czy użytkownik będzie potrzebował warstwy ukrytej, Builder utworzy sieć która ma połączenia z warstwą pośrednią lub też bezpośrednie połączenia warstwy wejściowej z wyjściowej.
+Podobnie jest z wyborem tego czy czy powinny być tworzone biasy czy też nie.
+Builder nie posiada żadnej metody dotyczącej wyboru pierwotnych wag połączeń, wynika to z tego, że zgodnie z założeniem algorytmu wstecznej propagacji są one inicjalizowane losowo.
+
+Dla tak stworzonej sieci neuronowej możemy przeprowadzić obliczenia, które zostały przedstawione w poprzednim podrozdziale.
+Robimy to w sposób przedstawiony w listingu \ref{lst:CalculateOutput}
+
+\begin{lstlisting} [caption={Budowanie obiektu NeuralNetwork},label={lst:CalculateOutput}]
+  network.FillInputNeurons(new double[] { 0, 1 });
+  var output = network.CalculateOutput();
+\end{lstlisting}
+
+W pierwszej kolejności są wypełniane neurony wejściowe.
+Jeśli użytkownik poda liczbę danych wejściowych różniącą się od liczby neuronów warstwy wejściowej zostanie wyrzucony wyjątek.
+
+Wyjście sieci jest liczone w sposób rekurencyjny:
+\begin{itemize}
+  \item Wyjście każdego neuronu z wyjątkiem neuronów wejściowych jest sumą wyjść połączeń wejściowych poddaną funkcji aktywacji (listing \ref{lst:NeuronOutput}).
+  \item Wyjście połączenia jest iloczynem wagi i wyjścia neuronu źródłowego (listing \ref{lst:ConnectionOutput})
+\end{itemize}
+
+\begin{lstlisting} [caption={Budowanie obiektu NeuralNetwork},label={lst:NeuronOutput}]
+  public class OutputNeuron : IOutputNeuron
+  {
+      //***
+      public double NetOutput => _inputConnections.Sum(x => x.Output);
+      public double Output => _activationFunction.Invoke(NetOutput);
+      //***
+  }
+\end{lstlisting}
+
+
+\begin{lstlisting} [caption={Budowanie obiektu NeuralNetwork},label={lst:ConnectionOutput}]
+  class NeuronConnection: INeuronConnection
+  {
+      //***
+      public double Output => Weight * _source.Output;
+      //***
+  }
+\end{lstlisting}
+
+\subsection{Trening sieci neuronowej}
+
+
+
+
+
 
 
 
