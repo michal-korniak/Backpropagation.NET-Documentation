@@ -9,6 +9,9 @@
     "redstrings",
     "stepnumber",
     "stringstyle",
+    "texteta",
+    "textsubscript",
+    "textsuperscript",
     "xleftmargin"
   ],
   "files.exclude": {
