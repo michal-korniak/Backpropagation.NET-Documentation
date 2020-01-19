@@ -6,13 +6,18 @@
     "bluekeywords",
     "greencomments",
     "keywordstyle",
+    "nieseparowalnych",
     "redstrings",
+    "separowalne",
     "stepnumber",
     "stringstyle",
     "texteta",
     "textsubscript",
     "textsuperscript",
     "xleftmargin"
+  ],
+  "cSpell.ignoreWords": [
+    "heatona"
   ],
   "files.exclude": {
     "*.aux": "explorerExcludedFiles",

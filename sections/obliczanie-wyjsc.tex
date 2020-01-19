@@ -1,0 +1,36 @@
+Nieodzownym krokiem treningu sieci neuronowej jest obliczenie aktualnych wyników i porównanie ich z oczekiwanymi.
+Przedstawmy to na przykładzie wejścia (0,1), którego oczekiwanym wyjściem jest 0.
+Informację o wejściu podajemy neuronom wejściowym, tak więc:\(i1=0\), \(i2=1\).
+
+Aby obliczyć wartości kolejnych neuronów musimy zsumować wartości połączeń do tego neuronu, a następnie poddając wynik funkcji aktywacji.
+Przez wartość połączenia będziemy rozumieli iloczyn wagi i neuronu wejściowego dla połączenia.
+Wagi połączeń zostały przedstawione na rysunku \ref{fig:separability}.
+
+Przykładowo dla neuronu h1 wartość przed użyciem funkcji aktywacji będzie równa:
+\[
+  net_{h1}  = i1*w11+i2*w21
+\]
+Co po podstawieniu wartości da:
+\[
+  net_{h1} = 0*0.5+1*0.1=0.1
+\]
+Taka wartość jest następnie poddawana działaniu funkcji aktywacji, 
+co umożliwia normalizowanie wartości neuronów do oczekiwanych przedziałów wartości.
+W tym przypadku skorzystamy z funkcji sigmoidalnej, której zakres wartości mieści się w przedziale [0,1]:
+\[
+    f(x) =  \frac{1}{1 + e^{-x} } 
+\]
+Po podstawieniu otrzymanej wcześniej wartości do funkcji dostaniemy wartość neuronu h1:
+\[
+    out_{h1} 
+    = f(net_{h1}) 
+    =  \frac{1 }{1 + e^{-net_{h1}} } 
+    =  \frac{1 }{1 + e^{-0.1} } \approx 0.525
+\]
+W ten sposób będziemy liczyć wartość kolejnych neuronów:
+\[
+    out_{h2}=f(i1*w12+i2*w22)=f(0*0.3+1*0.8)=f(0.8) \approx 0.690
+\]
+\[
+    out_{o}=f(h1*w1o+h2*w2o)=f(0.525*0.4+0.690*0.9)=f(0.831) \approx 0.697
+\]
