@@ -60,7 +60,7 @@ Wynika to z tego, że oba połączenie mają taki neuron docelowy.
 Aby nie liczyć tego samego dwa razy, możemy wprowadzić oznaczenie dla części wspólnej równania:
 \[
   \delta_{o} = \frac{\partial E_{total}}{\partial net_{o}} = \frac{\partial E_{total}}{\partial out_{o}} * \frac{\partial out_{o}}{\partial net_{o}} 
-\]
+\]   
 tym samym:
 \[
   \frac{\partial E_{total}}{\partial w1o} = \delta_{o}  * \frac{\partial net_{o}}{\partial w1o}
@@ -182,7 +182,7 @@ Obliczmy teraz dwie pozostałe pochodne:
   \frac{\partial net_{o1}}{\partial out_{h1}} = \frac{\partial (w1o * out_{h1} + w2o * out_{h2})}{\partial out_{h1}}=w1o
 \]
 \[
-  \frac{\partial out_{h1}}{\partial net_{h1}}= \frac{\partial out_{h1}}{\partial net_{h1}} = out_{h1}(1 - out_{h1})
+  \frac{\partial out_{h1}}{\partial net_{h1}} = out_{h1}(1 - out_{h1})
 \]
 
 Tak więc ostatecznie wyznacznik delta dla neuronu h1 jest równy:
@@ -215,7 +215,7 @@ W analogiczny sposób wyliczamy również wagi dla połączeń między neuronami
   w22^{+} = w22 - \eta * \frac{\partial E_{total}}{\partial w21}=w12 - \eta * \delta h2 * out_{i2}=0.8-0.1*-0.00547584*1=0.800547584
 \]
 
-Wielokrotne uruchomienie takiego algorytmu sprawi, że sieć będzie dawała oczekiwane rezultaty
+Wielokrotne uruchomienie takiego algorytmu sprawi, że sieć będzie dawała rezultaty coraz bardziej zbliżone do tych oczekiwanych.
 
 
 

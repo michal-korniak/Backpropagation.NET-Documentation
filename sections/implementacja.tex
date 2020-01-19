@@ -1,4 +1,6 @@
 
+\subsection{Tworzenie obiektu odpowiadającego sieci neuronowej}
+
 Teraz przedstawię autorską implementację przedstawionego wcześniej algorytmu.
 Podstawą jest klasa odwzorowującej sieć neuronową, w moim przypadku
 taką funkcję pełni klasa NeuralNetwork, która to implementuje interfejs pokazany na listingu \ref{lst:INeuralNetwork}.
@@ -33,8 +35,8 @@ Dzieje się to w sposób pokazany na listingu \ref{lst:NeuralNetworkBuilder}.
       .SetNumberOfOutputNeurons(1)
       .SetActivationFunction(new SigmoidActivationFunction())
       .SetErrorFunction(new MeanSquaredErrorFunction(1))
-      .SetNumberOfHiddenNeurons(3)  //opcjonalne
-      .AddBiasConnections()         //opcjonalne
+      .SetNumberOfHiddenNeurons(2)  //opcjonalne
+      //.AddBiasConnections()         //opcjonalne
       .Build();
 \end{lstlisting}
 
@@ -87,5 +89,125 @@ Wyjście sieci jest liczone w sposób rekurencyjny:
       //***
       public double Output => Weight * _source.Output;
       //***
+  }
+\end{lstlisting}
+
+\subsection{Implementacja treningu sieci neuronowej}
+
+Aby rozpocząć proces uczenia należy stworzyć instancję klasy Trainer, która to przyjmuje w konstruktorze
+informację na temat sieci, którą będziemy chcieli uczyć oraz stałej uczenia. 
+Kolejnym krokiem jest przygotowanie danych testowych, na podstawie których nauczymy naszą sieć określonych zachować.
+Następnie należy wywołać funkcję Train, przekazując jej kolekcję danych testowych oraz warunki stopu,
+to znaczy maksymalną liczbę epok po których nauczanie się zatrzyma oraz błąd po którego osiągnięciu zostanie zakończone.
+Cała ta procedura została pokazana na listingu \ref{lst:train-invoke}.
+
+
+\begin{lstlisting} [caption={Rozpoczęcie procesu uczenia },label={lst:train-invoke}]
+  var trainer = new Trainer(neuralNetwork: network, learningRate: 0.01, logger: new ConsoleLogger());
+  var trainDataCollection = new[]
+  {
+      new TrainData(new double []{ 0, 0 },new double [] { 1 } ),
+      new TrainData(new double []{ 1, 0 },new double [] { 0 } ),
+      new TrainData(new double []{ 0, 1 },new double [] { 0 } ),
+      new TrainData(new double []{ 1, 1 },new double [] { 1 } ),
+  };
+  trainer.Train(trainDataCollection, numberOfEpochs: 1000000, terminalEpochError:0.01);
+\end{lstlisting}
+
+Sama funkcja Train steruje przebiegiem uczenia (listing \ref{lst:train-invoke})
+W pierwszej kolejności wywołuje funkcję odpowiedzialną za sprawdzenie tego czy w danych testowych liczba danych na wejściu oraz na wyjściu zgadza się z liczbą neuronów w odpowiednich warstwach.
+Jeśli ten warunek jest spełniony funkcja wywołuje w pętli metodę TrainForSingleEpoch do czasu aż zostanie spełniony którykolwiek warunek stopu.
+
+\begin{lstlisting} [caption={Funkcja Train},label={lst:train-function}]
+  public void Train(TrainData[] trainDataCollection, int numberOfEpochs, double terminalEpochError)
+  {
+      ValidateTrainData(trainDataCollection);
+
+      for (int i = 0; i < numberOfEpochs; ++i)
+      {
+          var epochError = TrainForSingleEpoch(trainDataCollection);
+          _logger.Info($"Epoch {i+1}, error: {epochError}");
+          if (epochError <= terminalEpochError)
+          {
+              break;
+          }
+      }
+  }
+\end{lstlisting}
+
+Funkcja TrainForSingleEpoch (listing \ref{lst:TrainForSingleEpoch-function}) iteruje po danych testowych wewnątrz jednej epoki wywołując na nich szereg funkcji.
+Pierwszą z nich jest ta wypełniająca sieć danymi testowymi na wejściu (linia 6)
+Dzięki tej operacji funkcja HandleOutputLayer jest w stanie obliczyć błąd średniokwadratowy między wartością oczekiwaną a rzeczywistą, a także współczynnik delta.
+Współczynnik ten będzie przydatny przy liczeniu nowych wag zgodnie z opisem z poprzedniego rozdziału.
+
+W przypadku funkcji HandleHiddenLayer liczenie współczynnika delty dla danych neuronów warstwy ukrytej jest jedynym zadaniem funkcji.
+
+
+\begin{lstlisting} [caption={Funkcja TrainForSingleEpoch},label={lst:TrainForSingleEpoch-function}]
+  private double TrainForSingleEpoch(TrainData[] trainDataCollection)
+  {
+      double totalEpochError = 0;
+      foreach (var trainData in trainDataCollection)
+      {
+          _network.FillInputNeurons(trainData.Inputs);
+          HandleOutputLayer(trainData.ExpectedOutputs);
+          HandleHiddenLayer();
+          UpdateWeights();
+          totalEpochError += _network.OutputLayer.Sum(x => x.Error);
+      }
+      return totalEpochError;
+  }
+
+  private void HandleOutputLayer(double[] expectedOutputs)
+  {
+      for (int i = 0; i < expectedOutputs.Length; ++i)
+      {
+          var outputNeuron = _network.OutputLayer.ElementAt(i);
+          var expectedOutput = expectedOutputs[i];
+
+          outputNeuron.CalculateError(_network.ErrorFunction, expectedOutput);
+          outputNeuron.CalculateDeltaError(_network.ErrorFunction, expectedOutput);
+      }
+  }
+  private void HandleHiddenLayer()
+  {
+      foreach (var hiddenNeuron in _network.HiddenLayer)
+      {
+          hiddenNeuron.CalculateDeltaError();
+      }
+  }
+
+\end{lstlisting}
+
+Funkcja UpdateWeights iteruje po wszystkich połączeniach w zależności od tego czy są biasy czy zwykłe połączenia między neuronami wywołuje na nich odpowiednie funkcje.
+Najpierw przyjrzyjmy się funkcji UpdateNeuronConnectionWeight, która jest wykorzystywana do aktualizowania wag zwykłych neuronów.
+
+
+\begin{lstlisting} [caption={Funkcja UpdateNeuronConnectionWeight},label={lst:UpdateNeuronConnectionWeight-function}]
+  private void UpdateWeights()
+  {
+      var connectionsInNetwork = _network.OutputLayer.SelectMany(x => x.InputConnections).Concat(_network.HiddenLayer.SelectMany(x => x.InputConnections));
+      foreach (var connection in connectionsInNetwork)
+      {
+          if (connection is INeuronConnection neuronConnection)
+          {
+              UpdateNeuronConnectionWeight(neuronConnection);
+          }
+          else if (connection is IBiasConnection biasConnection)
+          {
+              UpdateBiasConnectionWeight(biasConnection);
+          }
+      }
+  }
+  private void UpdateBiasConnectionWeight(IBiasConnection biasConnection)
+  {
+      var derivatateOfTotalErrorToWeight = biasConnection.Destinations.Select(x => x as INeuronWithDeltaError).Sum(x => x.DeltaError);
+      biasConnection.Weight -= _learningRate * derivatateOfTotalErrorToWeight;
+  }
+  private void UpdateNeuronConnectionWeight(INeuronConnection neuronConnection)
+  {
+      var destinationNeuron = neuronConnection.Destination as INeuronWithDeltaError;
+      var derivatateOfTotalErrorToWeight = neuronConnection.Input * destinationNeuron.DeltaError;
+      neuronConnection.Weight -= _learningRate * derivatateOfTotalErrorToWeight;
   }
 \end{lstlisting}
