@@ -9,8 +9,9 @@
 
 \section{Wprowadzenie}
 Algorytm wstecznej propagacji błędu jest metodą uczenia wielowarstwowych polegającą na korekcie wag połączeń między neuronami na podstawie błędu całej sieci.
-W tym dokumencie prześledzę działanie tego algorytmu na przykładzie sieci realizującej funkcję NXoR,
+W tym dokumencie prześledzę działanie tego algorytmu,
 jednocześnie przedstawiając jego autorską implementację w języku C\#.
+Następnie pokaże jak algorytm radzi sobie z nauczaniem funkcji NXoR.
 
 \section{Algorytm wstecznej propagacji}
 \subsection{Sposób działania wielowarstwowych sieci neuronowych}
@@ -37,7 +38,7 @@ Robimy to sumując wartości połączeń do tego wektora, a następnie poddając
 Przez wartość połączenia będziemy rozumieli iloczyn wagi i neuronu wejściowego dla połączenia.
 Przykładowo dla neuronu h1 wartość przed użyciem funkcji aktywacji będzie równa:
 \[
-  net = i1*w1+i2*w2+1*b1
+  net_{h1}  = i1*w1+i2*w2+1*b1
 \]
 Co po podstawieniu wartości da:
 \[
@@ -110,9 +111,9 @@ Klasa NeuralNetworkBuilder umożliwia stworzenie sieci neuronowej:
 \end{itemize}
 
 Zadaniem Buildera jest stworzenie obiektu klasy NeuralNetwork, który spełni podane wymagania. 
-W zależności od tego czy użytkownik będzie potrzebował warstwy ukrytej, Builder utworzy sieć która ma połączenia z warstwą pośrednią lub też bezpośrednie połączenia warstwy wejściowej z wyjściowej.
+W zależności od tego czy użytkownik będzie potrzebował warstwy ukrytej, Builder utworzy sieć która ma połączenia z warstwą pośrednią lub też bezpośrednie połączenia warstwy wejściowej z wyjściową.
 Podobnie jest z wyborem tego czy czy powinny być tworzone biasy czy też nie.
-Builder nie posiada żadnej metody dotyczącej wyboru pierwotnych wag połączeń, wynika to z tego, że zgodnie z założeniem algorytmu wstecznej propagacji są one inicjalizowane losowo.
+Builder nie posiada żadnej metody dotyczącej wyboru pierwotnych wag połączeń, co wynika z tego, że zgodnie z założeniem algorytmu wstecznej propagacji są one inicjalizowane losowo.
 
 Dla tak stworzonej sieci neuronowej możemy przeprowadzić obliczenia, które zostały przedstawione w poprzednim podrozdziale.
 Robimy to w sposób przedstawiony w listingu \ref{lst:CalculateOutput}
@@ -131,7 +132,7 @@ Wyjście sieci jest liczone w sposób rekurencyjny:
   \item Wyjście połączenia jest iloczynem wagi i wyjścia neuronu źródłowego (listing \ref{lst:ConnectionOutput})
 \end{itemize}
 
-\begin{lstlisting} [caption={Budowanie obiektu NeuralNetwork},label={lst:NeuronOutput}]
+\begin{lstlisting} [caption={Wyliczanie wyjścia neuronu},label={lst:NeuronOutput}]
   public class OutputNeuron : IOutputNeuron
   {
       //***
@@ -142,7 +143,7 @@ Wyjście sieci jest liczone w sposób rekurencyjny:
 \end{lstlisting}
 
 
-\begin{lstlisting} [caption={Budowanie obiektu NeuralNetwork},label={lst:ConnectionOutput}]
+\begin{lstlisting} [caption={Wyliczanie wyjścia połączenia},label={lst:ConnectionOutput}]
   class NeuronConnection: INeuronConnection
   {
       //***
@@ -156,7 +157,7 @@ Wagi połączeń są inicjowane wartościami losowymi, w związku z tym możemy 
 Dlatego też przeprowadzany jest trening sieci, którego celem jest ustawienie wag w ten sposób, żeby wyjście sieci jak najbardziej odpowiadało wartościom oczekiwanym.
 
 Pierwszym krokiem jest podanie sieci danych testowych, które posiadają informację na temat wejścia oraz oczekiwanego wyjścia sieci.
-Następnie obliczane jest rzeczywiste wyjście neuronu, które jest porównywane z oczekiwanym za pomocą funkcji błędu średniokwadratowego.
+Następnie obliczane jest rzeczywiste wyjście neuronu, które są porównywane z oczekiwanym za pomocą funkcji błędu średniokwadratowego.
 
 \[
     E(O)=1/n*(d-y)^2
@@ -169,7 +170,7 @@ gdzie:
   \item y to rzeczywiste wyjście neuronu
 \end{itemize}
 
-Sumę błędów średniokwadratowych wszystkich neuronów wyjściowych jest błędem całkowitym.
+Suma błędów średniokwadratowych wszystkich neuronów wyjściowych jest błędem całkowitym.
 
 \begin{figure}[!ht]
   \includegraphics[width=\linewidth]{images/feed-forward-diagram-with-values.png}
@@ -199,13 +200,15 @@ Tym samym błąd całkowity wynosi:
     E_{total} = E_{o1}+E_{o2} \approx 0.274762845 + 0.023566205 \approx 0.29832905
 \]
 
-Jak widzimy sieć jest daleka do ideału, dlatego będziemy chcieli zmodyfikować wagi tak, aby zminimalizować błąd całkowity.
+Jak widzimy sieć jest daleka do ideału, dlatego będziemy chcieli zmodyfikować wagi tak,
+aby jak najbardziej zminimalizować błąd.
 
+Robimy to za pomocą wzoru:
+\[
+  w_5^{+} = w_5 - \eta * \frac{\partial E_{total}}{\partial w_{5}}
+\]
 
-
-
-
-
+gdzie:
 
 
 
