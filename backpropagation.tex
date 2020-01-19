@@ -152,6 +152,55 @@ Wyjście sieci jest liczone w sposób rekurencyjny:
 \end{lstlisting}
 
 \subsection{Trening sieci neuronowej}
+Wagi połączeń są inicjowane wartościami losowymi, w związku z tym możemy się spodziewać, że pierwotne wyjście sieci będzie znacznie odbiegało od tego czego oczekujemy.
+Dlatego też przeprowadzany jest trening sieci, którego celem jest ustawienie wag w ten sposób, żeby wyjście sieci jak najbardziej odpowiadało wartościom oczekiwanym.
+
+Pierwszym krokiem jest podanie sieci danych testowych, które posiadają informację na temat wejścia oraz oczekiwanego wyjścia sieci.
+Następnie obliczane jest rzeczywiste wyjście neuronu, które jest porównywane z oczekiwanym za pomocą funkcji błędu średniokwadratowego.
+
+\[
+    E(O)=1/n*(d-y)^2
+\]
+gdzie:
+\begin{itemize}
+  \item E(O) to błąd średniokwadratowy dla konkretnego neuronu wyjściowego
+  \item n to liczba neuronów warstwy wyjściowej
+  \item d to oczekiwane wyjście neuronu
+  \item y to rzeczywiste wyjście neuronu
+\end{itemize}
+
+Sumę błędów średniokwadratowych wszystkich neuronów wyjściowych jest błędem całkowitym.
+
+\begin{figure}[!ht]
+  \includegraphics[width=\linewidth]{images/feed-forward-diagram-with-values.png}
+  \source{https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/}
+  \caption{Przykład wielowarstwowej sieci jednokierunkowej z podanymi wejściami oraz oczekiwanymi wyjściami}
+\end{figure}
+
+Rozważmy sieć z rysunku 2, na którym zostały podane wejścia oraz oczekiwane wyjścia sieci.
+Wartości neuronów warstwy wyjściowej będą równe:
+\[
+    out_{o1} \approx 0.7513
+\]
+\[
+    out_{o2} \approx 0.7729
+\]
+Mając podane oczekiwane oraz rzeczywiste wyjście możemy obliczyć błąd średniokwadratowy dla obu neuronów:
+\[
+    E_{o1} = 1/2 * (0.01-0.7513)^2 \approx 0.274762845 
+\]
+
+\[
+    E_{o2} = 1/2 * (0.99-0.7729)^2 \approx 0.023566205 
+\]
+
+Tym samym błąd całkowity wynosi:
+\[
+    E_{total} = E_{o1}+E_{o2} \approx 0.274762845 + 0.023566205 \approx 0.29832905
+\]
+
+Jak widzimy sieć jest daleka do ideału, dlatego będziemy chcieli zmodyfikować wagi tak, aby zminimalizować błąd całkowity.
+
 
 
 
