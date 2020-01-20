@@ -136,11 +136,10 @@ Jeśli ten warunek jest spełniony funkcja wywołuje w pętli metodę TrainForSi
 \end{lstlisting}
 
 Funkcja TrainForSingleEpoch (listing \ref{lst:TrainForSingleEpoch-function}) iteruje po danych testowych wewnątrz jednej epoki wywołując na nich szereg funkcji.
-Pierwszą z nich jest ta wypełniająca sieć danymi testowymi na wejściu (linia 6)
-Dzięki tej operacji funkcja HandleOutputLayer jest w stanie obliczyć błąd średniokwadratowy między wartością oczekiwaną a rzeczywistą, a także współczynnik delta.
+Pierwszą z nich jest ta wypełniająca sieć danymi testowymi na wejściu (linia 6). Dzięki tej operacji jesteśmy w stanie obliczyć wyjście sieci co umożliwia skorzystanie z dwóch kolejnych funkcji.
+Funkcja HandleOutputLayer jest w stanie obliczyć błąd średniokwadratowy między wartością oczekiwaną a rzeczywistą oraz współczynnik delta.
 Współczynnik ten będzie przydatny przy liczeniu nowych wag zgodnie z opisem z poprzedniego rozdziału.
-
-W przypadku funkcji HandleHiddenLayer liczenie współczynnika delty dla danych neuronów warstwy ukrytej jest jedynym zadaniem funkcji.
+W przypadku funkcji HandleHiddenLayer liczymy wartość delty dla neuronów warstwy ukrytej.
 
 
 \begin{lstlisting} [caption={Funkcja TrainForSingleEpoch},label={lst:TrainForSingleEpoch-function}]
@@ -179,35 +178,22 @@ W przypadku funkcji HandleHiddenLayer liczenie współczynnika delty dla danych 
 
 \end{lstlisting}
 
-Funkcja UpdateWeights iteruje po wszystkich połączeniach w zależności od tego czy są biasy czy zwykłe połączenia między neuronami wywołuje na nich odpowiednie funkcje.
-Najpierw przyjrzyjmy się funkcji UpdateNeuronConnectionWeight, która jest wykorzystywana do aktualizowania wag zwykłych neuronów.
+Funkcja UpdateWeights iteruje po wszystkich połączeniach wywołując na nich funkcje aktualizujące wagi.
+W przypadku połączeń między neuronami wywoływana jest funkcja przedstawiona w listingu \ref{lst:UpdateNeuronConnectionWeight-function}.
+Funkcja ta korzysta ze wzoru, który wynika z obliczeń przedstawionym w podrozdziale dotyczącym korygowania wag:
+\[
+w^+=w-\eta*\frac{\partial E_{total}}{\partial w}  
+\]
+gdzie:
+\[
+  \frac{\partial E_{total}}{\partial w}  =\delta_{output}*input
+\]
 
-
-\begin{lstlisting} [caption={Funkcja UpdateNeuronConnectionWeight},label={lst:UpdateNeuronConnectionWeight-function}]
-  private void UpdateWeights()
-  {
-      var connectionsInNetwork = _network.OutputLayer.SelectMany(x => x.InputConnections).Concat(_network.HiddenLayer.SelectMany(x => x.InputConnections));
-      foreach (var connection in connectionsInNetwork)
-      {
-          if (connection is INeuronConnection neuronConnection)
-          {
-              UpdateNeuronConnectionWeight(neuronConnection);
-          }
-          else if (connection is IBiasConnection biasConnection)
-          {
-              UpdateBiasConnectionWeight(biasConnection);
-          }
-      }
-  }
-  private void UpdateBiasConnectionWeight(IBiasConnection biasConnection)
-  {
-      var derivatateOfTotalErrorToWeight = biasConnection.Destinations.Select(x => x as INeuronWithDeltaError).Sum(x => x.DeltaError);
-      biasConnection.Weight -= _learningRate * derivatateOfTotalErrorToWeight;
-  }
-  private void UpdateNeuronConnectionWeight(INeuronConnection neuronConnection)
-  {
-      var destinationNeuron = neuronConnection.Destination as INeuronWithDeltaError;
-      var derivatateOfTotalErrorToWeight = neuronConnection.Input * destinationNeuron.DeltaError;
-      neuronConnection.Weight -= _learningRate * derivatateOfTotalErrorToWeight;
-  }
+\begin{lstlisting} [caption={Funkcja TrainForSingleEpoch},label={lst:UpdateNeuronConnectionWeight-function}]
+private void UpdateNeuronConnectionWeight(INeuronConnection neuronConnection)
+{
+    var destinationNeuron = neuronConnection.Destination as INeuronWithDeltaError;
+    var derivatateOfTotalErrorToWeight = neuronConnection.Input * destinationNeuron.DeltaError;
+    neuronConnection.Weight -= _learningRate * derivatateOfTotalErrorToWeight;
+}
 \end{lstlisting}
