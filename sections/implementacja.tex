@@ -213,8 +213,83 @@ private void UpdateNeuronConnectionWeight(INeuronConnection neuronConnection)
 }
 \end{lstlisting}
 
-\subsection{Badanie mające na celu wyszukanie najlepszej architektury sieci NXOR}
+\subsection{Badanie mające na celu wyszukanie najlepszej architektury sieci realizującej funkcję NXOR}
 
-W
+Jak pokazuje listing \ref{lst:train-function} po każdym treningu są zwracane informacje na temat statystyk 
+procesu nauczania. Są to:
+\begin{itemize}
+  \item błąd całkowity dla danych testowych w ostatnim treningu epoki
+  \item liczba epok wykonanych w ramach treningu
+  \item czas potrzebny na wykonanie treningu
+\end{itemize}
 
+Dzięki tym informacjom jesteśmy w stanie przeprowadzić test mający na celu wyszukanie najlepszej architektury
+sieci neuronowej realizującej funkcję NXOR.
+Jak wiadomo sieć sieć realizująca taka funkcję musi mieć dwa neurony wejściowe oraz jeden wyjściowy,
+natomiast kwestią którą będziemy chcieli ustalić jest ilość neuronów ukrytych oraz to
+czy warto stworzyć połączenia do biasa.
 
+Aby dowiedzieć się jaka architektura będzie najbardziej optymalna przeprowadzono po 100 testów
+dla sieci posiadających od 1 do 5 neuronów w warstwie ukrytej, posiadającej lub nie posiadającej połączenia
+do biasa (Klasa Runner.ArchitectureTest.UnipolarNXORArchitectureTest).
+Każdy test miał ustawione warunki stopu na 100000 epok lub błąd całkowity równy 0.1.
+Następnie zostały porównane mediany dla danych konfiguracji. Oto wyniki:
+
+\begin{scriptsize}  
+  Number of neurons in hidden layer: 1
+  Bias: NO
+  Median results:
+  Number of epochs: 100000, average error: 1,00020034941792, elapsed time: 6,905 seconds
+  
+  Number of neurons in hidden layer: 2
+  Bias: NO
+  Median results:
+  Number of epochs: 100000, average error: 0,3239291988340041, elapsed time: 10,706 seconds
+  
+  Number of neurons in hidden layer: 3
+  Bias: NO
+  Median results:
+  Number of epochs: 64608, average error: 0,09999773905181816, elapsed time: 8,265 seconds
+  
+  Number of neurons in hidden layer: 4
+  Bias: NO
+  Median results:
+  Number of epochs: 59230, average error: 0,09999703805996166, elapsed time: 8,445 seconds
+  
+  Number of neurons in hidden layer: 5
+  Bias: NO
+  Median results:
+  Number of epochs: 59027, average error: 0,09999687258536925, elapsed time: 10,545 seconds
+  
+  Number of neurons in hidden layer: 1
+  Bias: YES
+  Median results:
+  Number of epochs: 100000, average error: 0,6852163896622288, elapsed time: 11,749 seconds
+  
+  Number of neurons in hidden layer: 2
+  Bias: YES
+  Median results:
+  Number of epochs: 60466, average error: 0,09999632349029491, elapsed time: 10,212 seconds
+  
+  Number of neurons in hidden layer: 3
+  Bias: YES
+  Median results:
+  Number of epochs: 49232, average error: 0,09999588993519329, elapsed time: 10,477 seconds
+  
+  Number of neurons in hidden layer: 4
+  Bias: YES
+  Median results:
+  Number of epochs: 47013, average error: 0,09999732020772159, elapsed time: 12,965 seconds
+  
+  Number of neurons in hidden layer: 5
+  Bias: YES
+  Median results:
+  Number of epochs: 60467, average error: 0,09999979050186819, elapsed time: 15,098 seconds
+\end{scriptsize}
+
+Jak widać sieć osiąga oczekiwany błąd całkowity aż w 7 konfiguracjach.
+Ten cel został osiągnięty w najmniejszej liczbie epok w przypadku dla 4 neuronów z biasem.
+Jednakże pomimo tego ten przypadek jest dość mało wydajny jeśli spojrzymy na czas, 
+gdyż jest on prawie o 5 sekund wolniejszy od najszybszego przypadku z 3 neuronami bez biasa.
+Wynika to z tego, że każde dodatkowe połączenie wymaga dodatkowych obliczeń,
+co sprawia, że powinniśmy ostrożnie zwiększać ich ilość w naszych sieciach.
