@@ -68,7 +68,7 @@ Jeśli użytkownik poda liczbę danych wejściowych różniącą się od liczby 
 
 Wyjście sieci jest liczone w sposób rekurencyjny:
 \begin{itemize}
-  \item Wyjście każdego neuronu z wyjątkiem neuronów wejściowych jest sumą wyjść połączeń wejściowych poddaną funkcji aktywacji (listing \ref{lst:NeuronOutput}).
+  \item Wyjście każdego neuronu z wyjątkiem neuronów wejściowych jest sumą wyjść połączeń wejściowych poddanych funkcji aktywacji (listing \ref{lst:NeuronOutput}).
   \item Wyjście połączenia jest iloczynem wagi i wyjścia neuronu źródłowego (listing \ref{lst:ConnectionOutput})
 \end{itemize}
 
@@ -96,9 +96,9 @@ Wyjście sieci jest liczone w sposób rekurencyjny:
 
 Aby rozpocząć proces uczenia należy stworzyć instancję klasy Trainer, która to przyjmuje w konstruktorze
 informację na temat sieci, którą będziemy chcieli uczyć oraz stałej uczenia. 
-Kolejnym krokiem jest przygotowanie danych testowych, na podstawie których nauczymy naszą sieć określonych zachować.
+Kolejnym krokiem jest przygotowanie danych testowych, na podstawie których nauczymy naszą sieć określonych zachowań.
 Następnie należy wywołać funkcję Train, przekazując jej kolekcję danych testowych oraz warunki stopu,
-to znaczy maksymalną liczbę epok po których nauczanie się zatrzyma oraz błąd po którego osiągnięciu zostanie zakończone.
+to znaczy maksymalną liczbę epok po których nauczanie się zatrzyma oraz błąd po którego osiągnięciu nauczanie zostanie zakończone.
 Cała ta procedura została pokazana na listingu \ref{lst:train-invoke}.
 
 
@@ -121,17 +121,25 @@ Jeśli ten warunek jest spełniony funkcja wywołuje w pętli metodę TrainForSi
 \begin{lstlisting} [caption={Funkcja Train},label={lst:train-function}]
   public void Train(TrainData[] trainDataCollection, int numberOfEpochs, double terminalEpochError)
   {
-      ValidateTrainData(trainDataCollection);
+    ValidateTrainData(trainDataCollection);
 
-      for (int i = 0; i < numberOfEpochs; ++i)
-      {
-          var epochError = TrainForSingleEpoch(trainDataCollection);
-          _logger.Info($"Epoch {i+1}, error: {epochError}");
-          if (epochError <= terminalEpochError)
-          {
-              break;
-          }
-      }
+    int i;
+    double epochError = -1;
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    for (i = 0; i < numberOfEpochs; ++i)
+    {
+        epochError = TrainForSingleEpoch(trainDataCollection);
+        _logger.Info($"Epoch {i + 1}, error: {epochError}");
+        _logger.Trace("___________________");
+        if (epochError <= terminalEpochError)
+        {
+            break;
+        }
+    }
+    stopwatch.Stop();
+
+    return new TrainStats(i, epochError, (double)stopwatch.ElapsedMilliseconds / 1000);
   }
 \end{lstlisting}
 
@@ -145,16 +153,23 @@ W przypadku funkcji HandleHiddenLayer liczymy wartość delty dla neuronów wars
 \begin{lstlisting} [caption={Funkcja TrainForSingleEpoch},label={lst:TrainForSingleEpoch-function}]
   private double TrainForSingleEpoch(TrainData[] trainDataCollection)
   {
-      double totalEpochError = 0;
-      foreach (var trainData in trainDataCollection)
-      {
-          _network.FillInputNeurons(trainData.Inputs);
-          HandleOutputLayer(trainData.ExpectedOutputs);
-          HandleHiddenLayer();
-          UpdateWeights();
-          totalEpochError += _network.OutputLayer.Sum(x => x.Error);
-      }
-      return totalEpochError;
+    double totalEpochError = 0;
+    foreach (var trainData in trainDataCollection)
+    {
+        _logger.Trace("");
+        _logger.Trace($"Input: ({string.Join(",", trainData.Inputs)})");
+        _network.FillInputNeurons(trainData.Inputs);
+        HandleOutputLayer(trainData.ExpectedOutputs);
+        _logger.Trace($"Output: ({string.Join(",", _network.OutputLayer.Select(x => x.Output))})");
+        _logger.Trace($"Expected: ({string.Join(",", trainData.ExpectedOutputs)})");
+        HandleHiddenLayer();
+        UpdateWeights();
+        double iterationError = _network.OutputLayer.Sum(x => x.Error);
+        _logger.Trace($"Iteration error: {iterationError}");
+        totalEpochError += iterationError;
+    }
+    _logger.Trace("");
+    return totalEpochError;
   }
 
   private void HandleOutputLayer(double[] expectedOutputs)
@@ -197,3 +212,9 @@ private void UpdateNeuronConnectionWeight(INeuronConnection neuronConnection)
     neuronConnection.Weight -= _learningRate * derivatateOfTotalErrorToWeight;
 }
 \end{lstlisting}
+
+\subsection{Badanie mające na celu wyszukanie najlepszej architektury sieci NXOR}
+
+W
+
+

@@ -1,0 +1,49 @@
+Number of neurons in hidden layer: 1
+Bias: NO
+Median results:
+Number of epochs: 100000, average error: 1,00020034941792, elapsed time: 6,905 seconds
+
+Number of neurons in hidden layer: 2
+Bias: NO
+Median results:
+Number of epochs: 100000, average error: 0,3239291988340041, elapsed time: 10,706 seconds
+
+Number of neurons in hidden layer: 3
+Bias: NO
+Median results:
+Number of epochs: 64608, average error: 0,09999773905181816, elapsed time: 8,265 seconds
+
+Number of neurons in hidden layer: 4
+Bias: NO
+Median results:
+Number of epochs: 59230, average error: 0,09999703805996166, elapsed time: 8,445 seconds
+
+Number of neurons in hidden layer: 5
+Bias: NO
+Median results:
+Number of epochs: 59027, average error: 0,09999687258536925, elapsed time: 10,545 seconds
+
+Number of neurons in hidden layer: 1
+Bias: YES
+Median results:
+Number of epochs: 100000, average error: 0,6852163896622288, elapsed time: 11,749 seconds
+
+Number of neurons in hidden layer: 2
+Bias: YES
+Median results:
+Number of epochs: 60466, average error: 0,09999632349029491, elapsed time: 10,212 seconds
+
+Number of neurons in hidden layer: 3
+Bias: YES
+Median results:
+Number of epochs: 49232, average error: 0,09999588993519329, elapsed time: 10,477 seconds
+
+Number of neurons in hidden layer: 4
+Bias: YES
+Median results:
+Number of epochs: 47013, average error: 0,09999732020772159, elapsed time: 12,965 seconds
+
+Number of neurons in hidden layer: 5
+Bias: YES
+Median results:
+Number of epochs: 60467, average error: 0,09999979050186819, elapsed time: 15,098 seconds
